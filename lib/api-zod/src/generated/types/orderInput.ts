@@ -6,6 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { OrderItemInput } from './orderItemInput';
+import type { PaymentMethod } from './paymentMethod';
 
 export interface OrderInput {
   /** @minItems 1 */
@@ -17,10 +18,33 @@ export interface OrderInput {
   /** @minLength 3 */
   customerEmail: string;
   /**
-     * Optional CPF, improves PIX payment approval rates
+     * CEP
+     * @minLength 1
+     */
+  zipCode: string;
+  /** @minLength 1 */
+  street: string;
+  /** @minLength 1 */
+  number: string;
+  /** @nullable */
+  complement?: string | null;
+  /** @minLength 1 */
+  neighborhood: string;
+  /** @minLength 1 */
+  city: string;
+  /** @minLength 1 */
+  state: string;
+  paymentMethod: PaymentMethod;
+  /**
+     * Only relevant when paymentMethod is cash
      * @nullable
      */
-  customerDocument?: string | null;
+  needsChange?: boolean | null;
+  /**
+     * Amount the customer will pay with, if change is needed
+     * @nullable
+     */
+  changeFor?: number | null;
   /** @nullable */
   notes?: string | null;
 }

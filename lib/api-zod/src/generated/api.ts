@@ -44,6 +44,12 @@ export const createOrderBodyCustomerEmailMin = 3;
 
 
 
+
+
+
+
+
+
 export const CreateOrderBody = zod.object({
   "items": zod.array(zod.object({
   "menuItemId": zod.number(),
@@ -52,13 +58,22 @@ export const CreateOrderBody = zod.object({
   "customerName": zod.string().min(1),
   "customerPhone": zod.string().min(1),
   "customerEmail": zod.string().min(createOrderBodyCustomerEmailMin),
-  "customerDocument": zod.string().nullish().describe('Optional CPF, improves PIX payment approval rates'),
+  "zipCode": zod.string().min(1).describe('CEP'),
+  "street": zod.string().min(1),
+  "number": zod.string().min(1),
+  "complement": zod.string().nullish(),
+  "neighborhood": zod.string().min(1),
+  "city": zod.string().min(1),
+  "state": zod.string().min(1),
+  "paymentMethod": zod.enum(['pix', 'cash']),
+  "needsChange": zod.boolean().nullish().describe('Only relevant when paymentMethod is cash'),
+  "changeFor": zod.number().nullish().describe('Amount the customer will pay with, if change is needed'),
   "notes": zod.string().nullish()
 })
 
 export const CreateOrderResponse = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired']),
+  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired', 'received']),
   "total": zod.number(),
   "items": zod.array(zod.object({
   "menuItemId": zod.number(),
@@ -69,6 +84,16 @@ export const CreateOrderResponse = zod.object({
   "customerName": zod.string(),
   "customerPhone": zod.string(),
   "customerEmail": zod.string(),
+  "zipCode": zod.string(),
+  "street": zod.string(),
+  "number": zod.string(),
+  "complement": zod.string().nullable(),
+  "neighborhood": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "paymentMethod": zod.enum(['pix', 'cash']),
+  "needsChange": zod.boolean().nullable(),
+  "changeFor": zod.number().nullable(),
   "notes": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "pixQrCode": zod.string().nullable().describe('PIX \"copia e cola\" payload'),
@@ -87,7 +112,7 @@ export const GetOrderParams = zod.object({
 
 export const GetOrderResponse = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired']),
+  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired', 'received']),
   "total": zod.number(),
   "items": zod.array(zod.object({
   "menuItemId": zod.number(),
@@ -98,6 +123,16 @@ export const GetOrderResponse = zod.object({
   "customerName": zod.string(),
   "customerPhone": zod.string(),
   "customerEmail": zod.string(),
+  "zipCode": zod.string(),
+  "street": zod.string(),
+  "number": zod.string(),
+  "complement": zod.string().nullable(),
+  "neighborhood": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "paymentMethod": zod.enum(['pix', 'cash']),
+  "needsChange": zod.boolean().nullable(),
+  "changeFor": zod.number().nullable(),
   "notes": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "pixQrCode": zod.string().nullable().describe('PIX \"copia e cola\" payload'),
@@ -116,7 +151,7 @@ export const CreateOrderPixPaymentParams = zod.object({
 
 export const CreateOrderPixPaymentResponse = zod.object({
   "id": zod.number(),
-  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired']),
+  "status": zod.enum(['pending', 'awaiting_payment', 'approved', 'rejected', 'cancelled', 'expired', 'received']),
   "total": zod.number(),
   "items": zod.array(zod.object({
   "menuItemId": zod.number(),
@@ -127,6 +162,16 @@ export const CreateOrderPixPaymentResponse = zod.object({
   "customerName": zod.string(),
   "customerPhone": zod.string(),
   "customerEmail": zod.string(),
+  "zipCode": zod.string(),
+  "street": zod.string(),
+  "number": zod.string(),
+  "complement": zod.string().nullable(),
+  "neighborhood": zod.string(),
+  "city": zod.string(),
+  "state": zod.string(),
+  "paymentMethod": zod.enum(['pix', 'cash']),
+  "needsChange": zod.boolean().nullable(),
+  "changeFor": zod.number().nullable(),
   "notes": zod.string().nullable(),
   "createdAt": zod.coerce.date(),
   "pixQrCode": zod.string().nullable().describe('PIX \"copia e cola\" payload'),

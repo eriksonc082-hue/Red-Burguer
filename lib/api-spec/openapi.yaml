@@ -174,9 +174,28 @@ components:
           type: integer
           minimum: 1
 
+    PaymentMethod:
+      type: string
+      enum:
+        - pix
+        - cash
+
     OrderInput:
       type: object
-      required: [items, customerName, customerPhone, customerEmail]
+      required:
+        [
+          items,
+          customerName,
+          customerPhone,
+          customerEmail,
+          zipCode,
+          street,
+          number,
+          neighborhood,
+          city,
+          state,
+          paymentMethod,
+        ]
       properties:
         items:
           type: array
@@ -192,9 +211,35 @@ components:
         customerEmail:
           type: string
           minLength: 3
-        customerDocument:
+        zipCode:
+          type: string
+          minLength: 1
+          description: CEP
+        street:
+          type: string
+          minLength: 1
+        number:
+          type: string
+          minLength: 1
+        complement:
           type: ["string", "null"]
-          description: Optional CPF, improves PIX payment approval rates
+        neighborhood:
+          type: string
+          minLength: 1
+        city:
+          type: string
+          minLength: 1
+        state:
+          type: string
+          minLength: 1
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        needsChange:
+          type: ["boolean", "null"]
+          description: Only relevant when paymentMethod is cash
+        changeFor:
+          type: ["number", "null"]
+          description: Amount the customer will pay with, if change is needed
         notes:
           type: ["string", "null"]
 
@@ -222,6 +267,16 @@ components:
           customerName,
           customerPhone,
           customerEmail,
+          zipCode,
+          street,
+          number,
+          complement,
+          neighborhood,
+          city,
+          state,
+          paymentMethod,
+          needsChange,
+          changeFor,
           notes,
           createdAt,
           pixQrCode,
@@ -240,6 +295,7 @@ components:
             - rejected
             - cancelled
             - expired
+            - received
         total:
           type: number
         items:
@@ -252,6 +308,26 @@ components:
           type: string
         customerEmail:
           type: string
+        zipCode:
+          type: string
+        street:
+          type: string
+        number:
+          type: string
+        complement:
+          type: ["string", "null"]
+        neighborhood:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethod"
+        needsChange:
+          type: ["boolean", "null"]
+        changeFor:
+          type: ["number", "null"]
         notes:
           type: ["string", "null"]
         createdAt:

@@ -7,6 +7,7 @@
  */
 import type { OrderItem } from './orderItem';
 import type { OrderStatus } from './orderStatus';
+import type { PaymentMethod } from './paymentMethod';
 
 export interface Order {
   id: number;
@@ -16,6 +17,19 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  /** @nullable */
+  complement: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  paymentMethod: PaymentMethod;
+  /** @nullable */
+  needsChange: boolean | null;
+  /** @nullable */
+  changeFor: number | null;
   /** @nullable */
   notes: string | null;
   createdAt: Date;

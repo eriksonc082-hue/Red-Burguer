@@ -6,6 +6,7 @@ import {
   timestamp,
   jsonb,
   bigint,
+  boolean,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
@@ -17,7 +18,10 @@ export const orderStatusValues = [
   "rejected",
   "cancelled",
   "expired",
+  "received",
 ] as const;
+
+export const paymentMethodValues = ["pix", "cash"] as const;
 
 export const orderItemsJsonSchema = z.array(
   z.object({
@@ -39,7 +43,18 @@ export const ordersTable = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   customerPhone: text("customer_phone").notNull(),
   customerEmail: text("customer_email").notNull(),
-  customerDocument: text("customer_document"),
+  zipCode: text("zip_code").notNull(),
+  street: text("street").notNull(),
+  number: text("number").notNull(),
+  complement: text("complement"),
+  neighborhood: text("neighborhood").notNull(),
+  city: text("city").notNull(),
+  state: text("state").notNull(),
+  paymentMethod: text("payment_method", { enum: paymentMethodValues })
+    .notNull()
+    .default("pix"),
+  needsChange: boolean("needs_change"),
+  changeFor: numeric("change_for", { precision: 10, scale: 2 }),
   notes: text("notes"),
   mpPaymentId: bigint("mp_payment_id", { mode: "number" }),
   pixQrCode: text("pix_qr_code"),

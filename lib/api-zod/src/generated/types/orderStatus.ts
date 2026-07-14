@@ -16,4 +16,5 @@ export const OrderStatus = {
   rejected: 'rejected',
   cancelled: 'cancelled',
   expired: 'expired',
+  received: 'received',
 } as const;

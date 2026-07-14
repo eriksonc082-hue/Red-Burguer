@@ -14,3 +14,4 @@ export * from './orderInput';
 export * from './orderItem';
 export * from './orderItemInput';
 export * from './orderStatus';
+export * from './paymentMethod';

@@ -29,6 +29,14 @@ export interface OrderItemInput {
   quantity: number;
 }
 
+export type PaymentMethod = typeof PaymentMethod[keyof typeof PaymentMethod];
+
+
+export const PaymentMethod = {
+  pix: 'pix',
+  cash: 'cash',
+} as const;
+
 export interface OrderInput {
   /** @minItems 1 */
   items: OrderItemInput[];
@@ -39,10 +47,33 @@ export interface OrderInput {
   /** @minLength 3 */
   customerEmail: string;
   /**
-     * Optional CPF, improves PIX payment approval rates
+     * CEP
+     * @minLength 1
+     */
+  zipCode: string;
+  /** @minLength 1 */
+  street: string;
+  /** @minLength 1 */
+  number: string;
+  /** @nullable */
+  complement?: string | null;
+  /** @minLength 1 */
+  neighborhood: string;
+  /** @minLength 1 */
+  city: string;
+  /** @minLength 1 */
+  state: string;
+  paymentMethod: PaymentMethod;
+  /**
+     * Only relevant when paymentMethod is cash
      * @nullable
      */
-  customerDocument?: string | null;
+  needsChange?: boolean | null;
+  /**
+     * Amount the customer will pay with, if change is needed
+     * @nullable
+     */
+  changeFor?: number | null;
   /** @nullable */
   notes?: string | null;
 }
@@ -64,6 +95,7 @@ export const OrderStatus = {
   rejected: 'rejected',
   cancelled: 'cancelled',
   expired: 'expired',
+  received: 'received',
 } as const;
 
 export interface Order {
@@ -74,6 +106,19 @@ export interface Order {
   customerName: string;
   customerPhone: string;
   customerEmail: string;
+  zipCode: string;
+  street: string;
+  number: string;
+  /** @nullable */
+  complement: string | null;
+  neighborhood: string;
+  city: string;
+  state: string;
+  paymentMethod: PaymentMethod;
+  /** @nullable */
+  needsChange: boolean | null;
+  /** @nullable */
+  changeFor: number | null;
   /** @nullable */
   notes: string | null;
   createdAt: string;

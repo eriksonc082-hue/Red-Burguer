@@ -27,6 +27,16 @@ function serializeOrder(order: OrderRow) {
     customerName: order.customerName,
     customerPhone: order.customerPhone,
     customerEmail: order.customerEmail,
+    zipCode: order.zipCode,
+    street: order.street,
+    number: order.number,
+    complement: order.complement ?? null,
+    neighborhood: order.neighborhood,
+    city: order.city,
+    state: order.state,
+    paymentMethod: order.paymentMethod,
+    needsChange: order.needsChange ?? null,
+    changeFor: order.changeFor !== null ? Number(order.changeFor) : null,
     notes: order.notes ?? null,
     createdAt: order.createdAt,
     pixQrCode: order.pixQrCode ?? null,
@@ -70,6 +80,13 @@ router.post("/orders", async (req, res): Promise<void> => {
     return;
   }
 
+  if (body.paymentMethod === "cash" && body.needsChange && body.changeFor == null) {
+    res.status(400).json({
+      error: "Informe o valor para troco quando o cliente precisar de troco.",
+    });
+    return;
+  }
+
   const menuItemIds = [...new Set(body.items.map((item) => item.menuItemId))];
 
   const menuRows = await db
@@ -102,16 +119,34 @@ router.post("/orders", async (req, res): Promise<void> => {
     0,
   );
 
+  // Cash orders skip the PIX flow entirely and are handed off to the
+  // restaurant via WhatsApp, so they go straight to "received" instead of
+  // sitting in "pending" (which the frontend treats as "needs a PIX charge").
+  const initialStatus = body.paymentMethod === "cash" ? "received" : "pending";
+
   const [order] = await db
     .insert(ordersTable)
     .values({
-      status: "pending",
+      status: initialStatus,
       total: total.toFixed(2),
       items: orderItems,
       customerName: body.customerName,
       customerPhone: body.customerPhone,
       customerEmail: body.customerEmail,
-      customerDocument: body.customerDocument ?? null,
+      zipCode: body.zipCode,
+      street: body.street,
+      number: body.number,
+      complement: body.complement ?? null,
+      neighborhood: body.neighborhood,
+      city: body.city,
+      state: body.state,
+      paymentMethod: body.paymentMethod,
+      needsChange:
+        body.paymentMethod === "cash" ? (body.needsChange ?? false) : null,
+      changeFor:
+        body.paymentMethod === "cash" && body.needsChange && body.changeFor != null
+          ? body.changeFor.toFixed(2)
+          : null,
       notes: body.notes ?? null,
     })
     .returning();
@@ -158,6 +193,13 @@ router.post("/orders/:id/pix", async (req, res): Promise<void> => {
     return;
   }
 
+  if (order.paymentMethod === "cash") {
+    res.status(400).json({
+      error: "Este pedido será pago em dinheiro na entrega, sem PIX.",
+    });
+    return;
+  }
+
   // Idempotent: if a PIX payment was already generated and hasn't expired,
   // just return the existing order instead of creating a duplicate charge.
   if (
@@ -186,7 +228,6 @@ router.post("/orders/:id/pix", async (req, res): Promise<void> => {
       externalReference: String(order.id),
       payerEmail: order.customerEmail,
       payerFirstName: order.customerName.split(" ")[0],
-      payerDocument: order.customerDocument,
     });
 
     const transactionData = payment.point_of_interaction?.transaction_data;
