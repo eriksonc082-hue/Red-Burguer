@@ -10,6 +10,10 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: menu
+    description: Menu operations
+  - name: orders
+    description: Order and PIX payment operations
 paths:
   /healthz:
     get:
@@ -24,6 +28,107 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /menu:
+    get:
+      operationId: listMenuItems
+      tags: [menu]
+      summary: List menu items
+      description: Returns every menu item grouped implicitly by category
+      responses:
+        "200":
+          description: List of menu items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MenuItem"
+
+  /orders:
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Create an order
+      description: Creates a new order from cart items. Prices are resolved server-side from the menu.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "400":
+          description: Invalid order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{id}:
+    get:
+      operationId: getOrder
+      tags: [orders]
+      summary: Get an order
+      description: Returns the current order, including payment status. Used for polling.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{id}/pix:
+    post:
+      operationId: createOrderPixPayment
+      tags: [orders]
+      summary: Create the PIX payment for an order
+      description: Calls the Mercado Pago API to create a PIX payment and returns the QR code and copy-paste code.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "201":
+          description: PIX payment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Order"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Mercado Pago is unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +139,130 @@ components:
       required:
         - status
 
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    MenuItem:
+      type: object
+      required: [id, name, description, price, imageUrl, category]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          description: Price in BRL
+        imageUrl:
+          type: string
+        category:
+          type: string
+
+    OrderItemInput:
+      type: object
+      required: [menuItemId, quantity]
+      properties:
+        menuItemId:
+          type: integer
+        quantity:
+          type: integer
+          minimum: 1
+
+    OrderInput:
+      type: object
+      required: [items, customerName, customerPhone, customerEmail]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/OrderItemInput"
+        customerName:
+          type: string
+          minLength: 1
+        customerPhone:
+          type: string
+          minLength: 1
+        customerEmail:
+          type: string
+          minLength: 3
+        customerDocument:
+          type: ["string", "null"]
+          description: Optional CPF, improves PIX payment approval rates
+        notes:
+          type: ["string", "null"]
+
+    OrderItem:
+      type: object
+      required: [menuItemId, name, price, quantity]
+      properties:
+        menuItemId:
+          type: integer
+        name:
+          type: string
+        price:
+          type: number
+        quantity:
+          type: integer
+
+    Order:
+      type: object
+      required:
+        [
+          id,
+          status,
+          total,
+          items,
+          customerName,
+          customerPhone,
+          customerEmail,
+          notes,
+          createdAt,
+          pixQrCode,
+          pixQrCodeBase64,
+          pixExpiresAt,
+        ]
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+          enum:
+            - pending
+            - awaiting_payment
+            - approved
+            - rejected
+            - cancelled
+            - expired
+        total:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItem"
+        customerName:
+          type: string
+        customerPhone:
+          type: string
+        customerEmail:
+          type: string
+        notes:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+          format: date-time
+        pixQrCode:
+          type: ["string", "null"]
+          description: PIX "copia e cola" payload
+        pixQrCodeBase64:
+          type: ["string", "null"]
+          description: Base64-encoded PNG of the PIX QR code
+        pixExpiresAt:
+          type: ["string", "null"]
+          format: date-time

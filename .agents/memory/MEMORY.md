@@ -1,0 +1,2 @@
+- [Mercado Pago PIX integration](mercadopago-pix.md) — webhook body is untrusted, always re-fetch payment from MP API; test emails need real MX domains.
+- [Tailwind v4 + Google Fonts @import order](tailwind-v4-font-import.md) — font @import must precede @import 'tailwindcss' or the build fails.
